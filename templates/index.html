@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد مدیریت شبکه</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header__brand"><span class="header__icon">⬡</span><span>داشبورد شبکه</span></div>
+    <div class="header__sys" id="sys-bar">در حال بارگذاری...</div>
+  </header>
+
+  <nav class="nav">
+    <button class="nav__tab active" data-tab="overview">نمای کلی</button>
+    <button class="nav__tab" data-tab="interfaces">اینترفیس‌ها</button>
+    <button class="nav__tab" data-tab="scanner">اسکنر Nmap</button>
+    <button class="nav__tab" data-tab="tools">ابزارها</button>
+    <button class="nav__tab" data-tab="learn">آموزش</button>
+  </nav>
+
+  <main class="main">
+    <section class="tab active" id="tab-overview">
+      <div class="grid grid--4">
+        <div class="card"><div class="card__label">پردازنده</div><div class="card__value" id="ov-cpu">—</div><div class="bar"><div class="bar__fill" id="bar-cpu"></div></div></div>
+        <div class="card"><div class="card__label">RAM</div><div class="card__value" id="ov-mem">—</div><div class="bar"><div class="bar__fill" id="bar-mem"></div></div></div>
+        <div class="card"><div class="card__label">دیسک</div><div class="card__value" id="ov-disk">—</div><div class="bar"><div class="bar__fill" id="bar-disk"></div></div></div>
+        <div class="card"><div class="card__label">هاست</div><div class="card__value" id="ov-host">—</div><div class="card__sub" id="ov-os">—</div></div>
+      </div>
+      <h2 class="section-title">وضعیت اینترفیس‌ها</h2>
+      <div class="grid grid--3" id="ov-ifaces"></div>
+    </section>
+
+    <section class="tab" id="tab-interfaces">
+      <div class="toolbar"><button class="btn btn--accent" onclick="loadInterfaces()">بروزرسانی</button></div>
+      <div id="iface-detail"></div>
+    </section>
+
+    <section class="tab" id="tab-scanner">
+      <div class="card">
+        <div class="card__label">اسکن Nmap</div>
+        <div class="form-row">
+          <input class="input" id="scan-target" placeholder="مثلاً 192.168.1.0/24" dir="ltr">
+          <select class="select" id="scan-type">
+            <option value="quick">سریع (-T4 -F)</option>
+            <option value="ping">Ping Scan (-sn)</option>
+            <option value="service">سرویس‌ها (-sV)</option>
+            <option value="os">شناسایی OS (-O، نیاز به root)</option>
+          </select>
+          <button class="btn btn--accent" onclick="runScan()">شروع اسکن</button>
+        </div>
+        <div class="notice">⚠ فقط روی شبکه‌هایی که مجوز دارید اسکن کنید.</div>
+      </div>
+      <div class="terminal" id="scan-output">نتیجه اسکن اینجا نمایش داده می‌شود...</div>
+    </section>
+
+    <section class="tab" id="tab-tools">
+      <div class="grid grid--2">
+        <div class="card">
+          <div class="card__label">Ping</div>
+          <div class="form-row"><input class="input" id="ping-host" placeholder="هاست یا IP" dir="ltr"><button class="btn btn--accent" onclick="runPing()">اجرا</button></div>
+          <div class="terminal small" id="ping-output">—</div>
+        </div>
+        <div class="card">
+          <div class="card__label">Traceroute</div>
+          <div class="form-row"><input class="input" id="trace-host" placeholder="هاست یا IP" dir="ltr"><button class="btn btn--accent" onclick="runTrace()">اجرا</button></div>
+          <div class="terminal small" id="trace-output">—</div>
+        </div>
+      </div>
+      <h2 class="section-title">جدول مسیریابی</h2>
+      <div class="toolbar"><button class="btn" onclick="loadRoutes()">بارگذاری</button></div>
+      <div class="terminal" id="routes-output">—</div>
+      <h2 class="section-title">جدول ARP</h2>
+      <div class="toolbar"><button class="btn" onclick="loadArp()">بارگذاری</button></div>
+      <div id="arp-table"></div>
+    </section>
+
+    <section class="tab" id="tab-learn">
+      <h2 class="section-title">مدل OSI</h2>
+      <div class="grid grid--4">
+        <div class="card layer"><div class="layer__num">7</div><div class="layer__name">Application</div><div class="layer__desc">HTTP, DNS, FTP, SMTP</div></div>
+        <div class="card layer"><div class="layer__num">6</div><div class="layer__name">Presentation</div><div class="layer__desc">TLS/SSL, JPEG, ASCII</div></div>
+        <div class="card layer"><div class="layer__num">5</div><div class="layer__name">Session</div><div class="layer__desc">NetBIOS, RPC</div></div>
+        <div class="card layer"><div class="layer__num">4</div><div class="layer__name">Transport</div><div class="layer__desc">TCP, UDP, SCTP</div></div>
+        <div class="card layer"><div class="layer__num">3</div><div class="layer__name">Network</div><div class="layer__desc">IP, ICMP, OSPF, BGP</div></div>
+        <div class="card layer"><div class="layer__num">2</div><div class="layer__name">Data Link</div><div class="layer__desc">Ethernet, ARP, Wi-Fi</div></div>
+        <div class="card layer"><div class="layer__num">1</div><div class="layer__name">Physical</div><div class="layer__desc">Cables, Hubs, RF</div></div>
+      </div>
+
+      <h2 class="section-title">پورت‌های رایج</h2>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>پورت</th><th>پروتکل</th><th>سرویس</th><th>توضیح</th></tr></thead>
+        <tbody>
+          <tr><td>21</td><td>TCP</td><td>FTP</td><td>انتقال فایل</td></tr>
+          <tr><td>22</td><td>TCP</td><td>SSH</td><td>اتصال امن از راه دور</td></tr>
+          <tr><td>23</td><td>TCP</td><td>Telnet</td><td>اتصال از راه دور (ناامن)</td></tr>
+          <tr><td>25</td><td>TCP</td><td>SMTP</td><td>ارسال ایمیل</td></tr>
+          <tr><td>53</td><td>TCP/UDP</td><td>DNS</td><td>تبدیل نام دامنه</td></tr>
+          <tr><td>80</td><td>TCP</td><td>HTTP</td><td>وب</td></tr>
+          <tr><td>110</td><td>TCP</td><td>POP3</td><td>دریافت ایمیل</td></tr>
+          <tr><td>143</td><td>TCP</td><td>IMAP</td><td>مدیریت ایمیل</td></tr>
+          <tr><td>443</td><td>TCP</td><td>HTTPS</td><td>وب رمزنگاری‌شده</td></tr>
+          <tr><td>445</td><td>TCP</td><td>SMB</td><td>اشتراک فایل ویندوز</td></tr>
+          <tr><td>3306</td><td>TCP</td><td>MySQL</td><td>پایگاه داده</td></tr>
+          <tr><td>3389</td><td>TCP</td><td>RDP</td><td>دسکتاپ راه دور</td></tr>
+          <tr><td>5432</td><td>TCP</td><td>PostgreSQL</td><td>پایگاه داده</td></tr>
+          <tr><td>8080</td><td>TCP</td><td>HTTP-Alt</td><td>وب‌سرور جایگزین</td></tr>
+        </tbody></table></div>
+
+      <h2 class="section-title">دستورات پرکاربرد</h2>
+      <div class="grid grid--2">
+        <div class="card"><div class="card__label">اینترفیس</div><code class="code-block">ip addr show
+ip link show</code></div>
+        <div class="card"><div class="card__label">مسیریابی</div><code class="code-block">ip route show
+ip route add 10.0.0.0/8 via 192.168.1.1</code></div>
+        <div class="card"><div class="card__label">اتصالات فعال</div><code class="code-block">ss -tunap
+lsof -i :80</code></div>
+        <div class="card"><div class="card__label">عیب‌یابی</div><code class="code-block">ping -c4 8.8.8.8
+traceroute google.com
+dig google.com</code></div>
+        <div class="card"><div class="card__label">tcpdump</div><code class="code-block">tcpdump -i eth0 -n
+tcpdump -i eth0 port 80
+tcpdump -w capture.pcap</code></div>
+        <div class="card"><div class="card__label">Nmap</div><code class="code-block">nmap -sn 192.168.1.0/24
+nmap -sV -p 1-1000 TARGET
+nmap -O TARGET</code></div>
+      </div>
+
+      <h2 class="section-title">محاسبه Subnet</h2>
+      <div class="card">
+        <div class="form-row">
+          <input class="input" id="subnet-ip" placeholder="مثلاً 192.168.1.0" dir="ltr">
+          <input class="input" id="subnet-mask" placeholder="Prefix مثلاً 24" type="number" min="0" max="32" dir="ltr">
+          <button class="btn btn--accent" onclick="calcSubnet()">محاسبه</button>
+        </div>
+        <div id="subnet-result" class="subnet-result"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/main.js"></script>
+</body>
+</html>
